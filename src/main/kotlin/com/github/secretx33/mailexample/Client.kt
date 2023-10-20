@@ -10,10 +10,14 @@ import jakarta.mail.internet.InternetAddress
 import jakarta.mail.internet.MimeBodyPart
 import jakarta.mail.internet.MimeMessage
 import jakarta.mail.internet.MimeMultipart
+import org.slf4j.LoggerFactory
+import java.lang.invoke.MethodHandles
 import java.net.InetAddress
 import java.util.Properties
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.time.ExperimentalTime
+
+private val log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass())
 
 suspend fun main(args: Array<String>) {
     try {
@@ -38,8 +42,8 @@ suspend fun main(args: Array<String>) {
         }
 
         Transport.send(message)
-        println("Successfully sent email!")
+        log.info("Successfully sent email!")
     } catch (e: Throwable) {
-        println(e.stackTraceToString().split("\n").take(6).joinToString("\n"))
+        log.error("Client error", e)
     }
 }

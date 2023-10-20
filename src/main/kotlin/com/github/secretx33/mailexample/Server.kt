@@ -19,9 +19,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withTimeoutOrNull
+import org.slf4j.LoggerFactory
 import org.subethamail.smtp.helper.SimpleMessageListener
 import org.subethamail.smtp.server.SMTPServer
 import java.io.InputStream
+import java.lang.invoke.MethodHandles
 import java.net.InetAddress
 import java.util.Properties
 import java.util.concurrent.AbstractExecutorService
@@ -33,10 +35,15 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.jvm.optionals.getOrNull
+import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Duration.Companion.seconds
+
+private val log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass())
 
 suspend fun main(args: Array<String>) {
     try {
+        val start = System.nanoTime().nanoseconds
         val server = SMTPServer.port(25000)
             .bindAddress(InetAddress.getLoopbackAddress())
             .maxConnections(threadAmount.coerceAtLeast(5) * 10)
@@ -46,11 +53,10 @@ suspend fun main(args: Array<String>) {
             .simpleMessageListener(LoggingMessageListener())
             .build()
         server.start()
-        println("Starting SMTP server on '${server.bindAddress.getOrNull()}' and port '${server.port}'")
-        println("$server")
+        log.info("Started SMTP server on '${server.bindAddress.getOrNull()}' and port '${server.port}' in ${((System.nanoTime().nanoseconds - start).inWholeMilliseconds / 1000.0 * 100.0).roundToInt() / 100.0}s")
         delay(Long.MAX_VALUE)
     } catch (e: Throwable) {
-        println(e.stackTraceToString().split("\n").take(6).joinToString("\n"))
+        log.error("Server error", e)
     }
 }
 
@@ -62,7 +68,7 @@ class LoggingMessageListener : SimpleMessageListener {
 
     override fun deliver(from: String, recipient: String, data: InputStream) {
         val mimeMessage = data.readMimeMessage()
-        println("Received email:\n${prettyJackson.writeValueAsString(debugMail(from, recipient, mimeMessage))}")
+        log.info("Received email:\n${prettyJackson.writeValueAsString(debugMail(from, recipient, mimeMessage))}")
     }
 
     private fun InputStream.readMimeMessage(): MimeMessage = use { MimeMessage(SESSION, it) }
