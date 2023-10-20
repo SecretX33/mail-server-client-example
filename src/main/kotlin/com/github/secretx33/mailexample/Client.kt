@@ -1,5 +1,4 @@
-@file:Suppress("RemoveExplicitTypeArguments", "UnstableApiUsage", "RedundantSuspendModifier", "UNCHECKED_CAST")
-@file:OptIn(ExperimentalTime::class, ExperimentalPathApi::class)
+@file:Suppress("RedundantSuspendModifier")
 
 package com.github.secretx33.mailexample
 
@@ -14,8 +13,6 @@ import org.slf4j.LoggerFactory
 import java.lang.invoke.MethodHandles
 import java.net.InetAddress
 import java.util.Properties
-import kotlin.io.path.ExperimentalPathApi
-import kotlin.time.ExperimentalTime
 
 private val log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass())
 

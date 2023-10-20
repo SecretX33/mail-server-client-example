@@ -1,5 +1,3 @@
-@file:Suppress("RemoveExplicitTypeArguments", "UnstableApiUsage", "RedundantSuspendModifier", "UNCHECKED_CAST")
-
 package com.github.secretx33.mailexample
 
 import jakarta.mail.Session
