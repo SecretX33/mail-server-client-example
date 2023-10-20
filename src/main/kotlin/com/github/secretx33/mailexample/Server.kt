@@ -102,16 +102,6 @@ class CoroutineExecutorService(
     private val state = AtomicReference(State.ACTIVE)
     private val shutdownComplete = CompletableFuture<Unit>()
 
-    private fun assertActive() {
-        if (state.get() == State.ACTIVE) return
-        throw RejectedExecutionException("Coroutine executor service is shutdown")
-    }
-
-    private fun setShutdownComplete() {
-        if (!state.compareAndSet(State.STOPPING, State.STOPPED)) return
-        shutdownComplete.complete(Unit)
-    }
-
     override fun execute(command: Runnable) {
         assertActive()
         coroutineScope.launch {
@@ -145,6 +135,16 @@ class CoroutineExecutorService(
         true
     } catch (e: TimeoutException) {
         false
+    }
+
+    private fun assertActive() {
+        if (state.get() == State.ACTIVE) return
+        throw RejectedExecutionException("Coroutine executor service is shutdown")
+    }
+
+    private fun setShutdownComplete() {
+        if (!state.compareAndSet(State.STOPPING, State.STOPPED)) return
+        shutdownComplete.complete(Unit)
     }
 
     override fun toString(): String = "${this::class.simpleName}(state=$state, availableTaskSlots=[${lock.availablePermits}/$parallelism], coroutineScope=$coroutineScope)"
