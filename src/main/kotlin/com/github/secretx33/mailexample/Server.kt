@@ -103,7 +103,7 @@ class CoroutineExecutorService(
         throw RejectedExecutionException("Coroutine executor service is shutdown")
     }
 
-    private fun setShutdownState() {
+    private fun setShutdownComplete() {
         if (!state.compareAndSet(State.STOPPING, State.STOPPED)) return
         shutdownComplete.complete(Unit)
     }
@@ -121,14 +121,14 @@ class CoroutineExecutorService(
         coroutineJob.complete()
         GlobalScope.launch {
             withTimeoutOrNull(30.seconds) { coroutineJob.join() }
-            setShutdownState()
+            setShutdownComplete()
         }
     }
 
     override fun shutdownNow(): List<Runnable> {
         if (!state.compareAndSet(State.ACTIVE, State.STOPPING)) return emptyList()
         coroutineJob.cancel(CancellationException("Closing coroutine executor service"))
-        setShutdownState()
+        setShutdownComplete()
         return emptyList()
     }
 
